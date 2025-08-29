@@ -27,11 +27,18 @@ def torus(r1: float, r2: float) -> SDF:
     return sdf
 
 
-def shift(sdf: SDF, offset: Point) -> SDF:
+def shifted(sdf: SDF, offset: Point) -> SDF:
     def sdf_shifted(p: Point) -> float:
         return sdf(add(p, offset))
 
     return sdf_shifted
+
+
+def rotated(sdf: SDF, axis: Point, angle: float) -> SDF:
+    def sdf_rotated(p: Point) -> float:
+        return sdf(rotate(p, axis, angle))
+
+    return sdf_rotated
 
 
 def cube(center: Point, size: float) -> SDF:

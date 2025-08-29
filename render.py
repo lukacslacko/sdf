@@ -15,7 +15,8 @@ def render(
     eps: float,
     max_distance: float
 ) -> Image:
-    right = cross(direction, up)
+    right = normalize(cross(direction, up))
+    up = normalize(cross(right, direction))
     image = Image.new("RGB", (width, height))
     for y in range(-height // 2, height // 2):
         print(y)
@@ -43,12 +44,19 @@ def render(
 
 
 if __name__ == "__main__":
-    origin = (0, 5, 0)
-    direction = (0, -1, 0)
+    origin = (0, 3, 4)
+    direction = normalize((0, -3, -4))
     up = (0, 0, 1)
     width = 800
     height = 600
-    sdf = torus(1, 0.5)
+    sdf = smooth_union(
+        torus(1, 0.5),
+        shifted(
+            rotated(torus(1, 0.5), (1, 0, 0), pi / 2),
+            (1, 0, 0),
+        ),
+        0.5,
+    )
     image = render(
         sdf,
         origin=origin,
