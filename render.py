@@ -46,7 +46,7 @@ if __name__ == "__main__":
     up = (0, 1, 0)
     width = 800
     height = 600
-    sdf = smooth_union(sphere((0, 0, 5), 1), sphere((1, 0, 5), 1), 0.2)
+    sdf = smooth_subtraction(sphere((0, 0, 5), 1), sphere((1, 0, 6), 1), 0.2)
     image = render(
         sdf,
         origin=origin,

@@ -71,6 +71,17 @@ def smooth_intersection(sdf1: SDF, sdf2: SDF, k: float) -> SDF:
     def sdf(p: Point) -> float:
         d1 = sdf1(p)
         d2 = sdf2(p)
-        return max(d1, d2) + k * (d1 + d2)
+        h = clamp(0.5 - 0.5 * (d2 - d1) / k, 0.0, 1.0)
+        return mix(d2, d1, h) + k * h * (1.0 - h)
+
+    return sdf
+
+
+def smooth_subtraction(sdf1: SDF, sdf2: SDF, k: float) -> SDF:
+    def sdf(p: Point) -> float:
+        d1 = sdf1(p)
+        d2 = sdf2(p)
+        h = clamp(0.5 - 0.5 * (d2 + d1) / k, 0.0, 1.0)
+        return mix(d2, -d1, h) + k * h * (1.0 - h)
 
     return sdf
