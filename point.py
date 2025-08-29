@@ -16,6 +16,16 @@ def cross(p1: Point, p2: Point) -> Point:
     )
 
 
+def dot(v1: Point, v2: Point) -> float:
+    return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]
+
+
+def orthogonal(v: Point, n: Point) -> Point:
+    n = normalize(n)
+    d = dot(v, n)
+    return normalize((v[0] - d * n[0], v[1] - d * n[1], v[2] - d * n[2]))
+
+
 def rotate(p: Point, axis: Point, angle: float) -> Point:
     ux, uy, uz = axis
     x, y, z = p
