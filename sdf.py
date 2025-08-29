@@ -1,6 +1,6 @@
 from typing import Callable
 
-from .point import *
+from point import *
 
 SDF = Callable[[Point], float]
 
@@ -9,7 +9,7 @@ def normal(p: Point, sdf: SDF, eps: float = 1e-6) -> Point:
     dx = sdf(add(p, (eps, 0, 0))) - sdf(add(p, (-eps, 0, 0)))
     dy = sdf(add(p, (0, eps, 0))) - sdf(add(p, (0, -eps, 0)))
     dz = sdf(add(p, (0, 0, eps))) - sdf(add(p, (0, 0, -eps)))
-    return norm((dx, dy, dz))
+    return normalize((dx, dy, dz))
 
 
 def sphere(center: Point, r: float) -> SDF:

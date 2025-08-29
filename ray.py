@@ -1,5 +1,5 @@
-from .sdf import *
-from .point import *
+from sdf import *
+from point import *
 
 from dataclasses import dataclass
 
@@ -20,8 +20,13 @@ class Ray:
             return Hit(True, normal(self.origin, sdf, eps))
 
         distance_traveled = 0.0
+        num_steps = 0
         while distance_traveled < max_distance:
+            num_steps += 1
             step = sdf(self.origin)
+            # print(
+            #     f"Step {num_steps}: sdf value {step}, {self.origin=}, {distance_traveled=}"
+            # )
             if step < eps:
                 return Hit(True, normal(self.origin, sdf, eps))
             while True:
@@ -29,5 +34,6 @@ class Ray:
                 if sdf(end) >= 0:
                     break
                 step *= 0.5
+            self.origin = end
             distance_traveled += step
         return Hit(False)
