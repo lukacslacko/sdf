@@ -49,11 +49,20 @@ def intersection(sdf1: SDF, sdf2: SDF) -> SDF:
     return sdf
 
 
+def mix(a: float, b: float, t: float) -> float:
+    return a * (1 - t) + b * t
+
+
+def clamp(x: float, min_val: float, max_val: float) -> float:
+    return max(min_val, min(x, max_val))
+
+
 def smooth_union(sdf1: SDF, sdf2: SDF, k: float) -> SDF:
     def sdf(p: Point) -> float:
         d1 = sdf1(p)
         d2 = sdf2(p)
-        return min(d1, d2) - k * (d1 + d2)
+        h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0)
+        return mix(d2, d1, h) - k * h * (1.0 - h)
 
     return sdf
 
