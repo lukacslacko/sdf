@@ -1,4 +1,5 @@
 from typing import Callable
+from math import hypot
 
 from point import *
 
@@ -19,12 +20,18 @@ def sphere(center: Point, r: float) -> SDF:
     return sdf
 
 
-def torus(center: Point, r1: float, r2: float) -> SDF:
+def torus(r1: float, r2: float) -> SDF:
     def sdf(p: Point) -> float:
-        d = dist(p, center) - r1
-        return dist((d, 0, 0), (0, 0, r2)) - r2
+        return hypot(hypot(p[0], p[2]) - r1, p[1]) - r2
 
     return sdf
+
+
+def shift(sdf: SDF, offset: Point) -> SDF:
+    def sdf_shifted(p: Point) -> float:
+        return sdf(add(p, offset))
+
+    return sdf_shifted
 
 
 def cube(center: Point, size: float) -> SDF:

@@ -11,7 +11,9 @@ def render(
     up: Point,
     width: int,
     height: int,
-    focal_length: float
+    focal_length: float,
+    eps: float,
+    max_distance: float
 ) -> Image:
     right = cross(direction, up)
     image = Image.new("RGB", (width, height))
@@ -25,7 +27,7 @@ def render(
                 )
             )
             ray = Ray(origin, ray_direction)
-            hit = ray.propagate(sdf)
+            hit = ray.propagate(sdf, eps=eps, max_distance=max_distance)
             if hit.hit:
                 image.putpixel(
                     (x + width // 2, y + height // 2),
@@ -41,12 +43,12 @@ def render(
 
 
 if __name__ == "__main__":
-    origin = (0, 0, 0)
-    direction = (0, 0, 1)
-    up = (0, 1, 0)
+    origin = (0, 5, 0)
+    direction = (0, -1, 0)
+    up = (0, 0, 1)
     width = 800
     height = 600
-    sdf = smooth_subtraction(sphere((0, 0, 5), 1), sphere((1, 0, 6), 1), 0.2)
+    sdf = torus(1, 0.5)
     image = render(
         sdf,
         origin=origin,
@@ -55,5 +57,7 @@ if __name__ == "__main__":
         width=width,
         height=height,
         focal_length=500.0,
+        eps=1e-3,
+        max_distance=100.0,
     )
     image.show()
