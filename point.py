@@ -1,4 +1,4 @@
-from math import dist, cos, sin, pi
+from math import dist, cos, sin, pi, hypot
 from typing import Tuple
 
 Point = Tuple[float, float, float]
@@ -44,10 +44,6 @@ def rotate(p: Point, axis: Point, angle: float) -> Point:
     )
 
 
-def length(p: Point) -> float:
-    return dist(p, (0, 0, 0))
-
-
 def mul(p: Point, scalar: float) -> Point:
     return (p[0] * scalar, p[1] * scalar, p[2] * scalar)
 
@@ -61,4 +57,4 @@ def add_mul(p1: Point, p2: Point, scalar: float) -> Point:
 
 
 def normalize(p: Point) -> Point:
-    return (p[0] / length(p), p[1] / length(p), p[2] / length(p))
+    return (p[0] / hypot(*p), p[1] / hypot(*p), p[2] / hypot(*p))

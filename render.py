@@ -46,8 +46,9 @@ def render(
                 image.putpixel((x + width // 2, y + height // 2), (0, 0, 0))
     for pt in points:
         v = normalize(vec(origin, pt))
-        x = int(dot(v, right) * focal_length)
-        y = int(dot(v, up) * focal_length)
+        a = 1 / dot(v, direction)
+        x = int(dot(v, right) * focal_length * a)
+        y = int(dot(v, up) * focal_length * a)
         image.putpixel((x + width // 2, y + height // 2), (255, 0, 0))
     return image
 
@@ -68,7 +69,9 @@ if __name__ == "__main__":
     )
     path = []
     for a in [0.2 * i for i in range(32)]:
-        surf_pt = project_to_surface(surface_sdf, p=(-0.5, -0.2, 2), direction=(cos(a), sin(a), 0))
+        surf_pt = project_to_surface(
+            surface_sdf, p=(-0.5, -0.2, 2), direction=(cos(a), sin(a), 0)
+        )
         for _ in range(800):
             surf_pt = surf_pt.move(0.005)
             path.append(surf_pt)
