@@ -21,7 +21,8 @@ def render(
     up = normalize(cross(right, direction))
     image = Image.new("RGB", (width, height))
     for y in range(-height // 2, height // 2):
-        print(y)
+        if y % 20 == 0:
+            print(y)
         for x in range(-width // 2, width // 2):
             ray_direction = normalize(
                 add(
@@ -66,21 +67,38 @@ if __name__ == "__main__":
     width = 800
     height = 600
     surface_sdf = smooth_union(
-        torus(1, 0.5),
+        shifted(
+            torus(1, 0.5),
+            (-0.5, 0, 0),
+        ),
         shifted(
             rotated(torus(1, 0.5), (1, 0, 0), pi / 2),
-            (1, 0, 0),
+            (0.5, 0, 0),
         ),
         0.5,
     )
     path = []
-    for a in [0.2 * i for i in range(32)]:
-        surf_pt = project_to_surface(
-            surface_sdf, p=(-0.5, -0.2, 2), direction=(cos(a), sin(a), 0)
-        )
-        for _ in range(1400):
-            surf_pt = surf_pt.move(0.005)
-            path.append(surf_pt)
+    for b in [
+        # (-2, -2, -2),
+        # (2, -2, -2),
+        # (-2, 2, -2),
+        # (2, 2, -2),
+        # (-2, -2, 2),
+        # (2, -2, 2),
+        (-2, 2, 2),
+        (2, 2, 2),
+    ]:
+        for a in [pi / 2 * i for i in range(4)]:
+            surf_pt = project_to_surface(
+                surface_sdf,
+                p=b,
+                direction=(cos(a), sin(a), 0),
+            )
+            for _ in range(100):
+                surf_pt = surf_pt.move(0.005)
+                path.append(surf_pt)
+    print("Connecting...")
+    path += connect(surface_sdf, (-2, 2, 2), (2, 2, 2))
     image = render(
         surface_sdf,
         origin=origin,
