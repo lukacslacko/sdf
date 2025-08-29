@@ -1,12 +1,15 @@
-from math import dist
-from typing import Tuple, Callable
+from typing import Callable
 
-Point = Tuple[float, float, float]
+from .point import *
+
 SDF = Callable[[Point], float]
 
 
-def vec(p1: Point, p2: Point) -> Point:
-    return (p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2])
+def normal(p: Point, sdf: SDF, eps: float = 1e-6) -> Point:
+    dx = sdf(add(p, (eps, 0, 0))) - sdf(add(p, (-eps, 0, 0)))
+    dy = sdf(add(p, (0, eps, 0))) - sdf(add(p, (0, -eps, 0)))
+    dz = sdf(add(p, (0, 0, eps))) - sdf(add(p, (0, 0, -eps)))
+    return norm((dx, dy, dz))
 
 
 def sphere(center: Point, r: float) -> SDF:
