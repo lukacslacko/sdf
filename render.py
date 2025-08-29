@@ -3,8 +3,6 @@ from geo import *
 
 from PIL import Image
 
-import sdf
-
 
 def render(
     sdf: SDF,
@@ -17,7 +15,7 @@ def render(
     focal_length: float,
     eps: float,
     max_distance: float,
-    points: list[Point],
+    points: list[SurfacePoint],
 ) -> Image:
     right = normalize(cross(direction, up))
     up = normalize(cross(right, direction))
@@ -45,7 +43,15 @@ def render(
             else:
                 image.putpixel((x + width // 2, y + height // 2), (0, 0, 0))
     for pt in points:
-        v = normalize(vec(origin, pt))
+        v = normalize(vec(origin, pt.point))
+        if dot(v, pt.normal) > 0:
+            continue
+        ray = Ray(origin, v)
+        hit = ray.propagate(sdf, eps=eps, max_distance=max_distance)
+        if not hit.hit:
+            continue
+        if dist(ray.origin, pt.point) > 4 * eps:
+            continue
         a = 1 / dot(v, direction)
         x = int(dot(v, right) * focal_length * a)
         y = int(dot(v, up) * focal_length * a)
@@ -72,7 +78,7 @@ if __name__ == "__main__":
         surf_pt = project_to_surface(
             surface_sdf, p=(-0.5, -0.2, 2), direction=(cos(a), sin(a), 0)
         )
-        for _ in range(800):
+        for _ in range(1400):
             surf_pt = surf_pt.move(0.005)
             path.append(surf_pt)
     image = render(
@@ -85,6 +91,6 @@ if __name__ == "__main__":
         focal_length=500.0,
         eps=1e-3,
         max_distance=100.0,
-        points=[p.point for p in path],
+        points=path,
     )
     image.show()
