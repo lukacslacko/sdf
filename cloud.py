@@ -33,10 +33,12 @@ def create_cloud(
                     continue
                 v = vec(points[j].point, pt.point)
                 if hypot(*v) < near_dist:
-                    move_vec = add(move_vec, mul(v, 1/hypot(*v)**2))
+                    move_vec = add(move_vec, mul(v, 1 / hypot(*v) ** 2))
             if move_vec == (0, 0, 0):
                 continue
-            guess = add_mul(pt.point, move_vec, step_size * (num_steps - step) / num_steps)
+            guess = add_mul(
+                pt.point, move_vec, step_size * (num_steps - step) / num_steps
+            )
             new_point = project_to_surface(sdf, p=guess, direction=(1, 0, 0))
             total_movement += dist(pt.point, new_point.point)
             points[i] = new_point

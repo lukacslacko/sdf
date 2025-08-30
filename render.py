@@ -91,7 +91,7 @@ if __name__ == "__main__":
         0.5,
     )
     path = []
-    marks = create_cloud(surface_sdf, num_points=1000, near_dist=0.7, step_size=0.01, num_steps=50)
+    marks = create_cloud(surface_sdf, num_points=600, near_dist=0.7, step_size=0.02, num_steps=200)
     image = render(
         surface_sdf,
         origin=origin,
