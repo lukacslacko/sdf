@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Hit:
     hit: bool
+    point: Point | None = None
     normal: Point | None = None
 
 
@@ -17,7 +18,7 @@ class Ray:
 
     def propagate(self, sdf: SDF, eps: float = 1e-6, max_distance: float = 1e4) -> Hit:
         if sdf(self.origin) < 0:
-            return Hit(True, normal(self.origin, sdf, eps))
+            return Hit(True, self.origin, normal(self.origin, sdf, eps))
 
         distance_traveled = 0.0
         num_steps = 0
@@ -28,7 +29,7 @@ class Ray:
             #     f"Step {num_steps}: sdf value {step}, {self.origin=}, {distance_traveled=}"
             # )
             if step < eps:
-                return Hit(True, normal(self.origin, sdf, eps))
+                return Hit(True, self.origin, normal(self.origin, sdf, eps))
             while True:
                 end = add_mul(self.origin, self.direction, step)
                 if sdf(end) >= 0:

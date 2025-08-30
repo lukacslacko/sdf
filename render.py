@@ -6,6 +6,7 @@ from sdf import SDF, sphere, torus, shifted, rotated, smooth_union
 from point import normalize, cross, add, mul, vec, dot
 from cloud import create_cloud
 from triangulate import Triangle, triangulate
+from stippling import make_surface, stipple
 
 from PIL import Image, ImageDraw
 
@@ -25,7 +26,7 @@ def render(
     marks: list[Point],
     triangles: list[Triangle],
     render_surface: bool = True,
-    show_surface: bool = True
+    show_surface: bool = True,
 ) -> Image:
     right = normalize(cross(direction, up))
     up = normalize(cross(right, direction))
@@ -61,10 +62,12 @@ def render(
 
     def on_screen(p: SurfacePoint) -> tuple[int, int, bool]:
         v = normalize(vec(origin, p.point))
+        ray = Ray(origin, v)
+        hit = ray.propagate(sdf, eps=eps, max_distance=max_distance)
         a = 1 / dot(v, direction)
         x = int(dot(v, right) * focal_length * a)
         y = int(dot(v, up) * focal_length * a)
-        return x, y, dot(v, p.normal) < 0
+        return x, y, dist(p.point, hit.point) > 10 * eps if hit.hit else True
 
     triangle_vertices = set()
     for tri in triangles:
@@ -187,3 +190,34 @@ if __name__ == "__main__":
         show_surface=True,
     )
     image.save("mesh.png")
+
+    surface = make_surface(surface_sdf, cloud, triangles)
+    stippled_points = stipple(surface, num_points=100, num_iters=100000)
+
+    for i in range(len(stippled_points)):
+        print(f"Connecting point {i + 1}/{len(stippled_points)}")
+        best_path = []
+        nearest_dist = 1.5
+        for j in range(len(stippled_points)):
+            print(j)
+            if i == j:
+                continue
+            if dist(stippled_points[i].point, stippled_points[j].point) > nearest_dist:
+                continue
+            pts, dst = connect(
+                surface_sdf, stippled_points[i].point, stippled_points[j].point
+            )
+            if dst < nearest_dist:
+                nearest_dist = dst
+                best_path = pts
+        path += best_path
+
+    image = render(
+        **render_params,
+        points=path,
+        marks=stippled_points,
+        triangles=[],
+        render_surface=False,
+        show_surface=True,
+    )
+    image.save("stippled.png")
