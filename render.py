@@ -73,11 +73,11 @@ if __name__ == "__main__":
     surface_sdf = smooth_union(
         shifted(
             torus(1, 0.5),
-            (-0.5, 0, 0),
+            (-1, 0, 0),
         ),
         shifted(
             rotated(torus(1, 0.5), (1, 0, 0), pi / 2),
-            (0.5, 0, 0),
+            (1, 0, 0),
         ),
         0.5,
     )
