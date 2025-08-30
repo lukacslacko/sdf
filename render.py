@@ -5,7 +5,7 @@ from geo import Point, SurfacePoint, project_to_surface, connect
 from sdf import SDF, sphere, torus, shifted, rotated, smooth_union
 from point import normalize, cross, add, mul, vec, dot
 from cloud import create_cloud
-from triangulate import triangulate
+from triangulate import Triangle, triangulate
 
 from PIL import Image, ImageDraw
 
@@ -23,12 +23,16 @@ def render(
     max_distance: float,
     points: list[SurfacePoint],
     marks: list[Point],
-    triangles: list[tuple[int, int, int]],
+    triangles: list[Triangle],
     render_surface: bool = True,
+    show_surface: bool = True
 ) -> Image:
     right = normalize(cross(direction, up))
     up = normalize(cross(right, direction))
-    image = Image.new("RGB", (width, height))
+    if render_surface or not show_surface:
+        image = Image.new("RGB", (width, height))
+    else:
+        image = Image.open("background.png")
     draw = ImageDraw.Draw(image)
     if render_surface:
         for y in range(-height // 2, height // 2):
@@ -64,13 +68,26 @@ def render(
 
     triangle_vertices = set()
     for tri in triangles:
-        for v in tri:
-            triangle_vertices.add(v)
-        for p, q in [(marks[tri[0]], marks[tri[1]]), (marks[tri[1]], marks[tri[2]]), (marks[tri[2]], marks[tri[0]])]:
+        triangle_vertices.add(tri.a_idx)
+        triangle_vertices.add(tri.b_idx)
+        triangle_vertices.add(tri.c_idx)
+        for p, q in [
+            (marks[tri.a_idx], marks[tri.b_idx]),
+            (marks[tri.b_idx], marks[tri.c_idx]),
+            (marks[tri.c_idx], marks[tri.a_idx]),
+        ]:
             x0, y0, behind0 = on_screen(p)
             x1, y1, behind1 = on_screen(q)
             if not behind0 and not behind1:
-                draw.line((x0 + width // 2, y0 + height // 2, x1 + width // 2, y1 + height // 2), fill=(255, 255, 255))
+                draw.line(
+                    (
+                        x0 + width // 2,
+                        y0 + height // 2,
+                        x1 + width // 2,
+                        y1 + height // 2,
+                    ),
+                    fill=(255, 255, 255),
+                )
 
     for i, mark in enumerate(marks):
         x, y, behind = on_screen(mark)
@@ -110,29 +127,63 @@ if __name__ == "__main__":
         0.5,
     )
     # surface_sdf = sphere((0, 0, 0), 1)
+
+    render_params = {
+        "sdf": surface_sdf,
+        "origin": origin,
+        "direction": direction,
+        "up": up,
+        "width": width,
+        "height": height,
+        "focal_length": 500.0,
+        "eps": 1e-3,
+        "max_distance": 100.0,
+    }
+
+    rerender_background = False
+    if rerender_background:
+        background = render(
+            **render_params,
+            points=[],
+            marks=[],
+            triangles=[],
+            render_surface=True,
+        )
+        background.save("background.png")
+    else:
+        background = Image.open("background.png")
+
     path = []
-    marks = create_cloud(
+    cloud = create_cloud(
         surface_sdf, num_points=300, near_dist=0.7, step_size=0.02, num_steps=100
     )
     dists = []
-    for i in range(len(marks)):
-        for j in range(i + 1, len(marks)):
-            dists.append(dist(marks[i].point, marks[j].point))
+    for i in range(len(cloud)):
+        for j in range(i + 1, len(cloud)):
+            dists.append(dist(cloud[i].point, cloud[j].point))
     print(min(dists), max(dists))
-    triangles = triangulate(marks, near_dist=0.7)
-    image = render(
-        surface_sdf,
-        origin=origin,
-        direction=direction,
-        up=up,
-        width=width,
-        height=height,
-        focal_length=500.0,
-        eps=1e-3,
-        max_distance=100.0,
-        points=path,
-        marks=marks,
-        triangles=triangles,
-        render_surface=True,
+    triangles = triangulate(cloud, near_dist=0.7)
+    num_edges = len(
+        {
+            (min(a, b), max(a, b))
+            for tri in triangles
+            for a, b in [
+                (tri.a_idx, tri.b_idx),
+                (tri.b_idx, tri.c_idx),
+                (tri.c_idx, tri.a_idx),
+            ]
+        }
     )
-    image.show()
+    num_vertices = len(cloud)
+    num_faces = len(triangles)
+    print(f"Vertices: {num_vertices}, Edges: {num_edges}, Faces: {num_faces}")
+    print(f"Euler characteristic: {num_vertices - num_edges + num_faces}")
+    image = render(
+        **render_params,
+        points=path,
+        marks=cloud,
+        triangles=triangles,
+        render_surface=False,
+        show_surface=True,
+    )
+    image.save("mesh.png")

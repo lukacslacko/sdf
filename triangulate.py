@@ -1,15 +1,16 @@
 from dataclasses import dataclass
-from math import dist
+from math import dist, hypot
 
 from point import Point, vec, dot, cross, normalize
 from geo import SurfacePoint
 
 
 @dataclass
-class Edge:
+class Triangle:
     a_idx: int
     b_idx: int
-    idx_on_other_side: int
+    c_idx: int
+    area: float
 
 
 def is_point_on_other_side(
@@ -22,7 +23,7 @@ def is_point_on_other_side(
 
 def triangulate(
     pts: list[SurfacePoint], near_dist: float
-) -> list[tuple[int, int, int]]:
+) -> list[Triangle]:
     rightmost_point_index = max(range(len(pts)), key=lambda i: pts[i].point[0])
     next_rightmost_point_index = max(
         (i for i in range(len(pts)) if i != rightmost_point_index),
@@ -62,10 +63,11 @@ def triangulate(
         add_edge(c, a, b)
         side_a = vec(pts[b].point, pts[c].point)
         side_b = vec(pts[a].point, pts[c].point)
+        area = hypot(*cross(side_a, side_b)) / 2
         if dot(pts[c].normal, cross(side_a, side_b)) < 0:
-            triangles.append((a, b, c))
+            triangles.append(Triangle(a, b, c, area))
         else:
-            triangles.append((b, a, c))
+            triangles.append(Triangle(b, a, c, area))
 
     def triangle_exists(a: int, b: int, c: int) -> bool:
         return (
@@ -79,7 +81,7 @@ def triangulate(
     )
     while edges_to_do:
         edge = edges_to_do.pop(0)
-        print(f"Num triangles: {len(triangles)}, edges remaining: {len(edges_to_do)}")
+        # print(f"Num triangles: {len(triangles)}, edges remaining: {len(edges_to_do)}")
         a_idx, b_idx = edge
         other_side_idx = edge_to_other_side.get(edge)
         a = pts[a_idx].point
@@ -108,9 +110,9 @@ def triangulate(
                 if smallest_dot_product is None or cos_angle < smallest_dot_product:
                     smallest_dot_product = cos_angle
                     best_idx = i
-        print(
-            f"Considered {pts_considered} points, {pts_on_other_side} on other side, {triangle_points_skipped=}"
-        )
+        # print(
+        #     f"Considered {pts_considered} points, {pts_on_other_side} on other side, {triangle_points_skipped=}"
+        # )
         if best_idx is not None:
             add_triangle(a_idx, b_idx, best_idx)
         else:
