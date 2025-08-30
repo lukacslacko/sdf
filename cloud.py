@@ -1,4 +1,4 @@
-from random import uniform
+from random import uniform, seed
 from math import dist, hypot
 
 from sdf import SDF
@@ -15,6 +15,7 @@ def create_cloud(
     points within `near_dist` and reproject them onto the surface. For non-convex
     shapes `near_dist` should be on the order of the size of local convexity.
     """
+    seed(42)
 
     def randpoint() -> Point:
         return mul(normalize((uniform(-2, 2), uniform(-2, 2), uniform(-2, 2))), 5)
