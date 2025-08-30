@@ -1,5 +1,5 @@
-from sdf import *
-from point import *
+from sdf import SDF, normal
+from point import Point, add_mul
 
 from dataclasses import dataclass
 

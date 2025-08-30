@@ -1,5 +1,9 @@
-from ray import *
-from geo import *
+from math import cos, sin, pi, dist
+
+from ray import Ray
+from geo import Point, SurfacePoint, project_to_surface, connect
+from sdf import SDF, torus, shifted, rotated, smooth_union
+from point import normalize, cross, add, mul, vec, dot
 
 from PIL import Image
 

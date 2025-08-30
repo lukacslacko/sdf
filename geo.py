@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from math import dist
 
-from sdf import *
-
+from sdf import Point, SDF, normal
+from point import add_mul, orthogonal, normalize, rotate, vec
 
 @dataclass
 class SurfacePoint:

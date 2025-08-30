@@ -1,7 +1,7 @@
 from typing import Callable
-from math import hypot
+from math import hypot, dist
 
-from point import *
+from point import Point, add, vec, normalize, rotate
 
 SDF = Callable[[Point], float]
 

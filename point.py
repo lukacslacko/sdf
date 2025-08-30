@@ -1,4 +1,4 @@
-from math import dist, cos, sin, pi, hypot
+from math import cos, sin, hypot
 from typing import Tuple
 
 Point = Tuple[float, float, float]
