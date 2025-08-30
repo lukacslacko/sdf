@@ -52,10 +52,14 @@ def closest_approach(
             return Approach(prev, distance_traveled)
         prev = curr
 
+@dataclass
+class Connection:
+    points: list[SurfacePoint]
+    distance: float
 
 def connect(
     sdf: SDF, p: Point, q: Point, *, step_size: float = 1e-3, eps: float = 1e-4
-) -> tuple[list[SurfacePoint], float]:
+) -> Connection:
     start = project_to_surface(sdf, p=p, direction=normalize(vec(p, q)), eps=eps)
     end = project_to_surface(sdf, p=q, direction=normalize(vec(q, p)), eps=eps)
     approach = closest_approach(start, end, step_size=step_size)
@@ -126,4 +130,4 @@ def connect(
         final_start = final_start.move(step_size)
         path.append(final_start)
         distance_traveled += step_size
-    return (path, distance_traveled)
+    return Connection(path, distance_traveled)

@@ -1,7 +1,7 @@
 from math import cos, sin, pi, dist
 
 from ray import Ray
-from geo import Point, SurfacePoint, project_to_surface, connect
+from geo import Connection, Point, SurfacePoint, project_to_surface, connect
 from sdf import SDF, sphere, torus, shifted, rotated, smooth_union
 from point import normalize, cross, add, mul, vec, dot
 from cloud import create_cloud
@@ -192,25 +192,31 @@ if __name__ == "__main__":
     image.save("mesh.png")
 
     surface = make_surface(surface_sdf, cloud, triangles)
-    stippled_points = stipple(surface, num_points=100, num_iters=100000)
+    stippled_points = stipple(surface, num_points=200, num_iters=100000)
 
-    for i in range(len(stippled_points)):
-        print(f"Connecting point {i + 1}/{len(stippled_points)}")
-        best_path = []
-        nearest_dist = 1.5
-        for j in range(len(stippled_points)):
-            print(j)
-            if i == j:
-                continue
-            if dist(stippled_points[i].point, stippled_points[j].point) > nearest_dist:
-                continue
-            pts, dst = connect(
-                surface_sdf, stippled_points[i].point, stippled_points[j].point
-            )
-            if dst < nearest_dist:
-                nearest_dist = dst
-                best_path = pts
-        path += best_path
+    dists: dict[tuple[int, int], Connection] = {}
+
+    def get_dist(i: int, j: int) -> Connection:
+        if i > j:
+            i, j = j, i
+        if (i, j) in dists:
+            return Connection([], float("inf"))
+        p = stippled_points[i].point
+        q = stippled_points[j].point
+        dists[(i, j)] = connect(
+            surface_sdf,
+            p,
+            q,
+            eps=1e-3,
+        )
+        return dists[(i, j)]
+
+    stippled_triangles = triangulate(stippled_points, near_dist=0.7)
+    for idx, tri in enumerate(stippled_triangles):
+        print(f"Stippled triangle {idx + 1}/{len(stippled_triangles)}")
+        for i in range(3):
+            idxs = [tri.a_idx, tri.b_idx, tri.c_idx]
+            path += get_dist(idxs[i], idxs[(i + 1) % 3]).points
 
     image = render(
         **render_params,
